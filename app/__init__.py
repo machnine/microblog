@@ -1,7 +1,13 @@
+#import Flask class from flask module
 from flask import Flask
+
+#import config class from the config.py in the same folder as microblog.py
 from config import Config
 
-app = Flask(__name__)   #app = name of the Flask instance
+#app = name of the Flask instance
+app = Flask(__name__)   
+#read app (instance) config
 app.config.from_object(Config)
 
-from app import routes  #app = ..\app package
+#from the ..\app folder import routes.py
+from app import routes  
