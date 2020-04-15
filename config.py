@@ -9,3 +9,9 @@ class Config(object):
         'sqlite:///' + os.path.join(basedir, 'app.db')
     #signal the application every time a change is about to be made in the database
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    ADMINS = 'admin@localhost'
+    MAIL_SERVER = 'localhost'
+    MAIL_PORT = 8025
+    MAIL_USERNAME = 'admin'
+    MAIL_PASSWORD = '123'
+    MAIL_USE_TLS = ''
