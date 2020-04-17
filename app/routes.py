@@ -13,11 +13,12 @@ def before_request():
         current_user.last_seen = datetime.utcnow()
         db.session.commit()
 
+
 @app.route('/')
 @app.route('/index')
 @login_required
 def index():
-    user = {'username':'Miguel'}
+    user = {'username': 'Miguel'}
     posts = [
                 {'author': {'username': 'John'},
                  'body': 'Beautiful day in Portland!'},
@@ -25,25 +26,24 @@ def index():
                  'body': 'The Avengers movie was so cool!'}
             ]
     return render_template('index.html', title='Home', posts=posts)
-    
-    
-    
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
-        
+
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
             flash('Invalid username or password')
             return redirect(url_for('login'))
-        
-        login_user(user, remember=form.remember_me.data)        
+
+        login_user(user, remember=form.remember_me.data)     
         next_page = request.args.get('next')                    #figure out which page (next_page) to load if login successfully
         if not next_page or url_parse(next_page).netloc !='':   #if there is no 'next' arguement => index page #if there is a full domain name (.netloc = somethin) => index page (for security reasons)
-            next_page = url_for('index')         
+            next_page = url_for('index')
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
 
@@ -52,13 +52,13 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('index'))
-    
-    
+
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
-        
+
     form = RegistrationForm()
     if form.validate_on_submit():
         user = User(username=form.username.data,
@@ -69,16 +69,17 @@ def register():
         flash('Congratulations, you are now a registered user!')
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
-    
-    
+
+
 @app.route('/user/<username>')
 @login_required
 def user(username):
     u = User.query.filter_by(username=username).first_or_404()
-    posts = [ {'author':u, 'body':'Test post #1'}
-              ,{'author':u, 'body':'Test post #2'}]
+    posts = [{'author': u, 'body': 'Test post #1'},
+             {'author': u, 'body': 'Test post #2'}]
     return render_template('user.html', user=u, posts=posts)
-    
+
+
 @app.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
 def edit_profile():
@@ -92,5 +93,40 @@ def edit_profile():
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.about_me.data = current_user.about_me
-    return render_template('edit_profile.html', title='Edit Profile', form=form)
-    
+    return render_template('edit_profile.html',
+                           title='Edit Profile', form=form)
+
+@app.route('/follow/<username>')
+@login_required
+def follow(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash(f"User {username} not found.")
+        return redirect(url_for('index'))
+
+    if user == current_user:
+        flash("You cannot follow yourself!")
+        return redirect(url_for('user', username=username))
+
+    current_user.follow(user)
+    db.session.commit()
+    flash(f"You are following {username}")
+    return redirect(url_for('user', username=username))
+
+
+@app.route('/unfollow/<username>')
+@login_required
+def unfollow(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash(f"User {username} not found.")
+        return redirect(url_for('index'))
+
+    if user == current_user:
+        flash("You cannot unfollow yourself!")
+        return redirect(url_for('user', username=username))
+
+    current_user.unfollow(user)
+    db.session.commit()
+    flash(f"You are not following {username}")
+    return redirect(url_for('user', username=username))    
