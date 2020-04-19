@@ -16,3 +16,6 @@ class Config(object):
     MAIL_USERNAME = 'admin'
     MAIL_PASSWORD = '123'
     MAIL_USE_TLS = ''
+
+    # pagination
+    POSTS_PER_PAGE = 15
