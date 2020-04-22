@@ -7,7 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_mail import Mail
-
+from flask_bootstrap import Bootstrap
 
 app = Flask(__name__)                   # app = name of the Flask instance
 app.config.from_object(Config)          # read app (instance) config
@@ -15,7 +15,8 @@ db = SQLAlchemy(app)                    # database object
 migrate = Migrate(app, db)              # db migration object
 login = LoginManager(app)               # flask-login object
 login.login_view = 'login'              # view function handles the login 
-mail = Mail(app)                       # flask-mail instance
+mail = Mail(app)                        # flask-mail instance
+bootstrap = Bootstrap(app)              # flask-bootstrap instance
 
 from app import routes, models, errors          # from the ..\app folder import routes.py
 

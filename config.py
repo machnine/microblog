@@ -18,4 +18,4 @@ class Config(object):
     MAIL_USE_TLS = ''
 
     # pagination
-    POSTS_PER_PAGE = 15
+    POSTS_PER_PAGE = 10
