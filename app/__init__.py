@@ -6,6 +6,7 @@ from config import Config               # import config class from the config.py
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
+from flask_mail import Mail
 
 
 app = Flask(__name__)                   # app = name of the Flask instance
@@ -14,6 +15,7 @@ db = SQLAlchemy(app)                    # database object
 migrate = Migrate(app, db)              # db migration object
 login = LoginManager(app)               # flask-login object
 login.login_view = 'login'              # view function handles the login 
+mail = Mail(app)                       # flask-mail instance
 
 from app import routes, models, errors          # from the ..\app folder import routes.py
 
@@ -26,7 +28,8 @@ if not app.debug:
             secure = None
             if app.config['MAIL_USE_TLS']:
                 secure = ()
-            mail_handler = SMTPHandler(mailhost=(app.config['MAIL_SERVER'], app.config['MAIL_PORT']),
+            mail_handler = SMTPHandler(mailhost=(app.config['MAIL_SERVER'],
+                                       app.config['MAIL_PORT']),
                                        fromaddr='no-reply@' + app.config['MAIL_SERVER'],
                                        toaddrs=app.config['ADMINS'],
                                        subject='Microblog Failure',
