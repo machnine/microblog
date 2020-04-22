@@ -1,13 +1,17 @@
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-from app import db, login
+from app import app, db, login
 from hashlib import md5
+from time import time
+import jwt
 
 
 followers = db.Table('followers',
-                     db.Column('follower_id', db.Integer, db.ForeignKey('user.id')),
-                     db.Column('followed_id', db.Integer, db.ForeignKey('user.id')))
+                     db.Column('follower_id',
+                               db.Integer, db.ForeignKey('user.id')),
+                     db.Column('followed_id',
+                               db.Integer, db.ForeignKey('user.id')))
 
 
 class User(UserMixin, db.Model):
@@ -47,7 +51,8 @@ class User(UserMixin, db.Model):
             self.followed.remove(user)
 
     def is_following(self, user):
-        return self.followed.filter(followers.c.followed_id == user.id).count() > 0
+        return self.followed.filter(
+                    followers.c.followed_id == user.id).count() > 0
 
     def followed_posts(self):
         followed = Post.query.join(followers,
@@ -56,12 +61,30 @@ class User(UserMixin, db.Model):
         own = Post.query.filter_by(user_id=self.id)
         return followed.union(own).order_by(Post.timestamp.desc())
 
+    def get_reset_password_token(self, expires_in=600):
+        return jwt.encode(
+                         {'reset_password': self.id,
+                          'exp': time() + expires_in},
+                         app.config['SECRET_KEY'],
+                         algorithm='HS256'
+                         ).decode('utf-8')
+
+    @staticmethod
+    def verify_reset_password_token(token):
+        try:
+            id = jwt.decode(token, app.config['SECRET_KEY'],
+                            algorithms=['HS256'])['reset_password']
+        except:
+            return
+        return User.query.get(id)
+
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     body = db.Column(db.String(140))
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow) # pass the function 
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))               #'user' = name of ref table, 'User' class auto-converted to lower case
+    timestamp = db.Column(db.DateTime, index=True,
+                          default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     def __repr__(self):
         return f'<Post {self.body}>'
