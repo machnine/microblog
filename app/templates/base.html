@@ -52,3 +52,10 @@
 
 	</div>
 {% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    {{ moment.include_moment() }}
+    {# auto browser locale detection #}
+    {{ moment.locale(auto_detect=True)}}
+{% endblock %}
